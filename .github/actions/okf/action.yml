@@ -1,0 +1,24 @@
+---
+# The okf binary, which `make check` needs and nothing else does.
+#
+# A pre-commit hook runs `okf validate docs/` with `language: system`, so the
+# binary has to be on PATH already. `make init` installs it for a working copy;
+# this is the CI equivalent, and it is separate from the uv setup because the
+# jobs that do not run the docs bundle neither need it nor should pay for it.
+name: OKF
+description: Install the okf CLI that validates the documentation bundle.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v7
+      with:
+        go-version: '1.24'
+        # No go.mod or go.sum: Go only installs okf, and caching it warns.
+        cache: false
+
+    # setup-go pins GOTOOLCHAIN=local, so the release okf needs is fetched only
+    # because this asks for it.
+    - name: Install okf
+      shell: bash
+      run: GOTOOLCHAIN=auto go install github.com/okfcli/okf/cmd/okf@latest

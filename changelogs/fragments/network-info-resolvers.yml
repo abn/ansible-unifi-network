@@ -1,0 +1,3 @@
+minor_changes:
+  - unifi_network_info - add the C(dhcp_dns_3) and C(dhcp_dns_4) resolver slots to
+    the reported fields, matching the two already exposed.

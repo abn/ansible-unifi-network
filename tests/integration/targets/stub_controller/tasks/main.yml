@@ -1,0 +1,345 @@
+---
+- name: Start the stub controller
+  ansible.builtin.command:
+    argv:
+      - "{{ ansible_python_interpreter }}"
+      - "{{ stub_script }}"
+      - "{{ playbook_dir }}"
+      - "{{ port_file }}"
+  async: "{{ 3600 }}"
+  poll: 0
+  changed_when: true
+
+- name: Wait for the stub to publish its port
+  ansible.builtin.wait_for:
+    path: "{{ port_file }}"
+    state: present
+    timeout: 30
+
+- name: Read the port the stub bound
+  ansible.builtin.slurp:
+    src: "{{ port_file }}"
+  register: published
+
+- name: Remember the port
+  ansible.builtin.set_fact:
+    controller: "127.0.0.1:{{ (published.content | b64decode).strip() }}"
+
+
+- name: Create a network through the real framework
+  abn.unifi_network.unifi_network:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ network_name }}"
+    purpose: corporate
+    vlan: "150"
+    subnet: 10.30.150.1/24
+  register: created
+
+# Every assertion below is one the live suite cannot make, because it drives the
+# module through a stand-in rather than through ansible-playbook.
+
+- name: The callback reported a change
+  ansible.builtin.assert:
+    that:
+      - created is changed
+      - created is not failed
+
+- name: The argument spec coerced vlan from a string to an integer
+  ansible.builtin.assert:
+    that:
+      - created.obj.vlan == 150
+      # A spec that did not coerce would have sent the string, and the stub would
+      # have stored it verbatim, which is the shape a JSON body cannot distinguish
+      # from the number without the coercion having happened.
+      - created.obj.vlan is not string
+
+- name: The diff the callback rendered carries both ends
+  ansible.builtin.assert:
+    that:
+      - created.diff.before == {}
+      - created.diff.after.name == network_name
+
+- name: The stub received exactly one write
+  ansible.builtin.uri:
+    url: "https://{{ controller }}/__writes"
+    validate_certs: false
+    return_content: true
+  register: writes
+
+- name: The write was a create carrying the network
+  ansible.builtin.assert:
+    that:
+      - writes.json.data | length == 1
+      - writes.json.data[0].method == 'POST'
+      - writes.json.data[0].record.name == network_name
+
+- name: Run the same task again
+  abn.unifi_network.unifi_network:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ network_name }}"
+    purpose: corporate
+    vlan: 150
+    subnet: 10.30.150.1/24
+  register: second
+
+- name: The second run reported no change
+  ansible.builtin.assert:
+    that:
+      # The idempotency invariant, proven through a real callback rather than
+      # through a stand-in that returns whatever it was handed.
+      - second is not changed
+      - second is not failed
+
+- name: Run in check mode
+  abn.unifi_network.unifi_network:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ checked_name }}"
+    purpose: corporate
+  check_mode: true
+  register: checked
+
+- name: Check mode reported the change without writing it
+  ansible.builtin.uri:
+    url: "https://{{ controller }}/__writes"
+    validate_certs: false
+    return_content: true
+  register: after_check
+
+- name: Nothing was written
+  ansible.builtin.assert:
+    that:
+      - checked is changed
+      - checked is not failed
+      - after_check.json.data | length == 1
+      - checked.diff.after.name == checked_name
+
+- name: Reach a controller that is not listening
+  abn.unifi_network.unifi_network:
+    controller: 127.0.0.1:1
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: unreachable
+  register: refused
+  ignore_errors: true
+
+- name: The failure reached the play and the password did not
+  ansible.builtin.assert:
+    that:
+      - refused is failed
+      # no_log masking is the framework's, and the message a failing module
+      # reports is what an operator sees. A secret in it would be printed in full
+      # on every run of every playbook that got the password wrong.
+      - stub_password not in (refused.msg | default(''))
+      - stub_password not in (refused.stderr | default(''))
+
+- name: Remove the network
+  abn.unifi_network.unifi_network:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ network_name }}"
+    state: absent
+  register: removed
+
+- name: The removal was reported and the stub is empty
+  ansible.builtin.uri:
+    url: "https://{{ controller }}/api/s/default/rest/networkconf"
+    validate_certs: false
+    headers:
+      Cookie: "unifises=stub-session"
+    return_content: true
+  register: final
+
+- name: The controller holds nothing
+  ansible.builtin.assert:
+    that:
+      - removed is changed
+      - final.json.data | length == 0
+
+- name: Removing it again reports no change
+  abn.unifi_network.unifi_network:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ network_name }}"
+    state: absent
+  register: removed_again
+
+- name: The second removal changed nothing
+  ansible.builtin.assert:
+    that:
+      - removed_again is not changed
+      - removed_again is not failed
+
+
+# The firewall rule, which is the second resource the real framework drives. It is
+# on a different collection beneath the same site, so the stub proves it stores a
+# rule beside a network without either displacing the other.
+
+- name: Create a firewall rule through the real framework
+  abn.unifi_network.unifi_firewall_rule:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ firewall_name }}"
+    ruleset: LAN_IN
+    rule_index: 2010
+    action: accept
+    protocol: all
+    enabled: true
+    logging: true
+  register: firewall_created
+
+- name: The firewall callback reported a change and coerced rule_index
+  ansible.builtin.assert:
+    that:
+      - firewall_created is changed
+      - firewall_created is not failed
+      - firewall_created.obj.rule_index == 2010
+      # A spec that did not coerce would have sent the integer as a string and the
+      # stub would have stored it verbatim, which a JSON body cannot distinguish
+      # without the coercion having happened.
+      - firewall_created.obj.rule_index is not string
+      - firewall_created.diff.before == {}
+
+- name: Run the same firewall task again
+  abn.unifi_network.unifi_firewall_rule:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ firewall_name }}"
+    ruleset: LAN_IN
+    rule_index: 2010
+    action: accept
+    protocol: all
+    enabled: true
+    logging: true
+  register: firewall_second
+
+- name: The second firewall run reported no change
+  ansible.builtin.assert:
+    that:
+      - firewall_second is not changed
+      - firewall_second is not failed
+
+- name: Run the firewall task in check mode
+  abn.unifi_network.unifi_firewall_rule:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ firewall_checked_name }}"
+    ruleset: LAN_IN
+    rule_index: 2011
+    action: accept
+    protocol: all
+    enabled: true
+  check_mode: true
+  register: firewall_checked
+
+- name: List the rules the stub holds
+  ansible.builtin.uri:
+    url: "https://{{ controller }}/api/s/default/rest/firewallrule"
+    validate_certs: false
+    headers:
+      Cookie: "unifises=stub-session"
+    return_content: true
+  register: firewall_listed
+
+- name: Check mode reported the change without writing it
+  ansible.builtin.assert:
+    that:
+      - firewall_checked is changed
+      - firewall_checked is not failed
+      - firewall_checked.diff.after.name == firewall_checked_name
+      - firewall_listed.json.data | length == 1
+
+- name: Remove the firewall rule
+  abn.unifi_network.unifi_firewall_rule:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ firewall_name }}"
+    ruleset: LAN_IN
+    state: absent
+  register: firewall_removed
+
+- name: List the rules the stub holds after the removal
+  ansible.builtin.uri:
+    url: "https://{{ controller }}/api/s/default/rest/firewallrule"
+    validate_certs: false
+    headers:
+      Cookie: "unifises=stub-session"
+    return_content: true
+  register: firewall_final
+
+- name: The controller holds no firewall rule
+  ansible.builtin.assert:
+    that:
+      - firewall_removed is changed
+      - firewall_final.json.data | length == 0
+
+- name: Removing the firewall rule again reports no change
+  abn.unifi_network.unifi_firewall_rule:
+    controller: "{{ controller }}"
+    username: verify
+    password: "{{ stub_password }}"
+    api_family: legacy
+    api_mount: appliance
+    site: default
+    validate_certs: false
+    name: "{{ firewall_name }}"
+    ruleset: LAN_IN
+    state: absent
+  register: firewall_removed_again
+
+- name: The second firewall removal changed nothing
+  ansible.builtin.assert:
+    that:
+      - firewall_removed_again is not changed
+      - firewall_removed_again is not failed

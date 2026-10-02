@@ -1,0 +1,4 @@
+minor_changes:
+  - unifi_client_info - add the C(local_dns_record) and
+    C(local_dns_record_enabled) fields to the reported client, so the local DNS
+    name a reservation sets is visible in the client listing.

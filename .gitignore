@@ -1,0 +1,54 @@
+# Scratch area: local-only working notes, never committed.
+.agents/brain/
+
+# Parallel lane worktrees, one branch each.
+.worktrees/
+
+# Live-test credentials, in the project root and never committed.
+.unifi-credentials
+.unifi-api-key
+
+# The throwaway stack's own environment file. It holds the console password and
+# the integration key that `make uos/up` generates, so it is never committed.
+tests/live/stack-uos/.env
+
+# Ansible test output
+/tests/output/
+/tests/integration/targets/**/output/
+*.retry
+
+# Collection build artifacts
+*.tar.gz
+/MANIFEST.json
+/FILES.json
+/build/
+/dist/
+
+# `ansible-galaxy collection build` writes its file manifest cache here, inside
+# the repository. The build target asserts against git's ignore list, so this
+# entry is load-bearing: remove it and the build starts shipping a second copy of
+# the collection. The staged collection itself lives in $TMPDIR, not here.
+/.ansible/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ty_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Tooling caches
+/.cache/
+/changelogs/.plugin-cache.yaml
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store

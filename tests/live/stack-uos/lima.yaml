@@ -1,0 +1,61 @@
+# A throwaway Linux VM for UniFi OS Server.
+#
+# The supported install is a host binary that installs a systemd service with
+# sudo, which invariant 6 forbids on the operator's machine. A VM is the way to
+# give it the systemd host it expects without touching the machine underneath:
+# the whole installation lives in ~/.lima and disappears with `limactl delete`.
+#
+# A container on the host can run the same image, but needs systemd inside it and
+# a macvlan alias for `eth0`, because rootless pasta names the container interface
+# after the host's and unifi-core crash-loops when it cannot read a MAC.
+#
+# Reach it with `limactl shell <name>`, and the console once installed at
+# https://localhost:11443/ through the port forwards below.
+
+vmType: qemu
+arch: x86_64
+
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
+    arch: x86_64
+
+# UniFi OS Server asks for 2GB and 10GB. Doubled, because it runs a database, a
+# message broker, a web server and several services on top of the application.
+cpus: 4
+memory: "4GiB"
+disk: "30GiB"
+
+# Nothing from the host is mounted. The VM is not a place to keep work, and a
+# mount would put host paths inside an environment built to be thrown away.
+mounts: []
+
+containerd:
+  system: false
+  user: false
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      apt-get install -y podman slirp4netns curl ca-certificates
+
+      # UniFi OS Server requires podman 4.9.3+ with pasta networking. Ubuntu 24.04
+      # ships 4.9.x, so this asserts the floor rather than installing anything.
+      podman --version
+
+portForwards:
+  # Loopback only, so the console is not reachable from the network.
+  #
+  # The guest port is 11443 rather than 443: the installer serves the console on
+  # 11443 inside the machine, which is how it avoids needing a privileged port.
+  # Forwarding 443 there, as the first draft did, binds nothing and answers
+  # nothing, which reads like the VM being down.
+  - guestPort: 11443
+    hostIP: "127.0.0.1"
+    hostPort: 11443
+  - guestPort: 8080
+    hostIP: "127.0.0.1"
+    hostPort: 18080

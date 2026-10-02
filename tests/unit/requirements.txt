@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Anything imported from tests/unit/** must be listed here, along with anything
+# providing a fixture the suite uses. ansible-test installs this file into the
+# unit-test environment.
+#
+# Nothing is imported yet. The list grows with the first test that needs a
+# package, and a stale entry is worse than a missing one, so it starts empty.
+PyYAML

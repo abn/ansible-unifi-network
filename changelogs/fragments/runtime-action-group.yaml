@@ -1,0 +1,4 @@
+minor_changes:
+  - add the C(unifi) action group, so the connection options can be set once
+    under the C(group/abn.unifi_network.unifi) entry of C(module_defaults)
+    instead of repeated on every task.

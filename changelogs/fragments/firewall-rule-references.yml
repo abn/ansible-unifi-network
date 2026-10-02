@@ -1,0 +1,7 @@
+minor_changes:
+  - unifi_firewall_rule - add C(src_network), C(dst_network), C(src_firewall_group)
+    and C(dst_firewall_group), so a rule can name a referenced network or firewall
+    group instead of requiring its identifier.
+  - unifi_firewall_rule - require C(src_network_id) with C(src_network_type) and
+    C(dst_network_id) with C(dst_network_type), and accept C(log_enabled) as an
+    alias for C(logging).

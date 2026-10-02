@@ -1,0 +1,102 @@
+---
+# Sanity must pass against devel too: new sanity tests land there first.
+#
+# The three ansible-test jobs have no uv: that action builds its own containers,
+# and a uv venv alongside it fails for reasons unrelated to the code. The final
+# job does have it, because it runs this repository's own tooling instead.
+#
+# No job here has a credential or a controller. There is deliberately no live
+# suite in this repository, so nothing can reach one from CI.
+
+name: ansible-test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A superseded push has nothing to say about the new one, and the containerised
+  # matrix is the expensive part of this repository's CI.
+  cancel-in-progress: true
+
+jobs:
+  sanity:
+    name: sanity ${{ matrix.ansible }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [stable-2.19, stable-2.20, stable-2.21, stable-2.22, devel]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ansible-community/ansible-test-gh-action@v1.18.0
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: '3.12'
+          testing-type: sanity
+
+  units:
+    name: units ${{ matrix.ansible }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [stable-2.19, stable-2.20, stable-2.21, stable-2.22, devel]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ansible-community/ansible-test-gh-action@v1.18.0
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: '3.12'
+          testing-type: units
+
+  integration:
+    name: integration ${{ matrix.ansible }} ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [stable-2.19, stable-2.20, stable-2.21, stable-2.22, devel]
+        # The floor and one above it. The modules target 3.12, so nothing older
+        # can run them, and 2.21 itself requires 3.12 or later.
+        python: ['3.12', '3.13']
+        exclude:
+          # devel tracks ansible-core's next series, which has no 3.12 build to
+          # test against yet, and pairing the two produces a failure that says
+          # nothing about this collection.
+          - ansible: devel
+            python: '3.12'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ansible-community/ansible-test-gh-action@v1.18.0
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: ${{ matrix.python }}
+          testing-type: integration
+
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/prepare
+
+      - name: Install the locked tooling environment
+        run: uv sync --locked
+
+      - uses: ./.github/actions/okf
+
+      - name: Run the hermetic gates
+        run: make check
+
+      # Unit tests sit here rather than in a job of their own because they need
+      # the same environment this job has already built, and the ones that check
+      # every field name against the vendored API descriptions are the cheapest
+      # gate that can catch a renamed field.
+      - name: Unit tests
+        run: make test

@@ -1,0 +1,10 @@
+---
+# A credential for the stub, which accepts any. It is declared here so the play
+# references one name, and it is a value this repository invents rather than one
+# that reaches anything: the stub binds loopback, holds state in memory, and
+# exists for the length of one suite.
+stub_password: not-a-credential-for-anything
+network_name: integration-network
+checked_name: integration-checked
+firewall_name: integration-firewall
+firewall_checked_name: integration-firewall-checked

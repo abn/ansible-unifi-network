@@ -1,0 +1,56 @@
+---
+# See https://docs.ansible.com/projects/ansible/latest/dev_guide/collections_galaxy_meta.html
+namespace: abn
+name: unifi_network
+version: 0.1.0
+readme: README.md
+authors:
+  - Arun Babu Neelicattu (github.com/abn)
+description: Manage UniFi Network devices declaratively through the UniFi controller API.
+license:
+  - GPL-3.0-or-later
+  - BSD-2-Clause
+tags:
+  - networking
+  - unifi
+  - ubiquiti
+  - api
+dependencies: {}
+repository: https://github.com/abn/ansible-unifi-network
+documentation: https://github.com/abn/ansible-unifi-network/tree/main/docs
+homepage: https://github.com/abn/ansible-unifi-network
+issues: https://github.com/abn/ansible-unifi-network/issues
+build_ignore:
+  # ansible-galaxy build does not read .gitignore, so anything not listed ships;
+  # `make build` checks the artifact independently rather than trusting this list.
+  - .venv
+  - .tox
+  - .nox
+  - .cache
+  - .ruff_cache
+  - .ansible
+  - .pytest_cache
+  - build
+  - dist
+  - built-docs
+  - __pycache__
+  - '*.pyc'
+  - .agents
+  - .worktrees
+  - .github
+  - .editorconfig
+  - .gitignore
+  - .pre-commit-config.yaml
+  - .python-version
+  - .yamllint
+  - .ansible-lint
+  - pyproject.toml
+  - uv.lock
+  - Makefile
+  - AGENTS.md
+  - CODE_OF_CONDUCT.md
+  - MAINTAINERS
+  - tests/fixtures
+  - tests/output
+  - tests/live/stack-uos/.env
+  - changelogs/.plugin-cache.yaml

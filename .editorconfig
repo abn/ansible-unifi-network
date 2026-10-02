@@ -1,0 +1,30 @@
+# Normalised across the collection, so an editor cannot introduce trailing
+# whitespace, tabs, or a missing final newline that the pre-commit hooks would
+# then reject.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+[Makefile]
+indent_style = tab
+
+[LICENSES/*.txt]
+# Redistributed verbatim. An editor must not reflow or re-indent a licence text.
+insert_final_newline = unset
+trim_trailing_whitespace = unset
+
+[*.md]
+trim_trailing_whitespace = false

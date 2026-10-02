@@ -1,0 +1,4 @@
+minor_changes:
+  - unifi_port_forward - add aliases to the port, protocol, source and address
+    options, so an inventory key already using one of the common spellings needs
+    no rewrite.

@@ -1,0 +1,7 @@
+---
+minor_changes:
+  - unifi_dhcp_reservation - added the C(local_dns_record) option, which sets the
+    name the site's local DNS server answers and enables it, and requires
+    C(fixed_ip).
+  - unifi_dhcp_reservation - C(fixed_ip) gained the aliases C(ip) and
+    C(address).

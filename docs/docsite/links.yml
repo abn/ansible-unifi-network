@@ -1,0 +1,18 @@
+---
+# Navigation and attribution for the built docsite.
+
+edit_on_github:
+  repository: abn/ansible-unifi-network
+  branch: main
+  path_prefix: ''
+
+extra_links:
+  - description: Report an issue
+    url: https://github.com/abn/ansible-unifi-network/issues/new/choose
+  - description: UniFi Network application and API notes
+    url: https://help.ui.com/hc/en-us/categories/360002347237-UniFi
+
+communication:
+  forums:
+    - topic: Ansible Forum
+      url: https://forum.ansible.com/c/help/6

@@ -1,0 +1,27 @@
+---
+# The group lets a playbook set the connection options once under `module_defaults`.
+# Every module in it accepts them, so they need not be repeated per task.
+requires_ansible: '>=2.19.0'
+
+# A group entry naming a module this collection does not ship is dropped when the
+# group is resolved, and the action it named does not get the defaults while the
+# rest of the group still works. The unit suite asserts the list against the
+# module directory.
+action_groups:
+  unifi:
+    - unifi_client_info
+    - unifi_device
+    - unifi_device_info
+    - unifi_dhcp_reservation
+    - unifi_firewall_policy
+    - unifi_firewall_rule
+    - unifi_firewall_zone
+    - unifi_network
+    - unifi_network_info
+    - unifi_port_forward
+    - unifi_port_override
+    - unifi_port_profile
+    - unifi_wlan
+
+# plugin_routing and import_redirection are empty. Add an entry when a plugin is
+# renamed or moved, so old names keep resolving.

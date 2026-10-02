@@ -1,0 +1,6 @@
+minor_changes:
+  - unifi_device - added the C(port_overrides) option, a list of per-port
+    overrides merged by port index, so a task sets one port without disturbing
+    the others. A port takes a port profile or its own fields, never both.
+    Removing one port's override is C(unifi_port_override)'s job with
+    C(state=absent).

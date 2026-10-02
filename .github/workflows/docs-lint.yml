@@ -1,0 +1,32 @@
+---
+# Pinned: antsibull-docs 3.0 flips lint defaults, and a release must not change
+# what CI checks on the day it lands.
+
+name: docs
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A superseded push has nothing to say about the new one, and the containerised
+  # jobs are the expensive part of this repository's CI.
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: antsibull-docs lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/prepare
+
+      # uvx rather than the project lock: one binary, and no dependency on the
+      # development lock for a job that does not use it.
+      - name: Lint collection docs
+        run: |
+          make docs/lint \
+            ANTSIBULL_DOCS="uvx --from 'antsibull-docs==2.27.0' antsibull-docs"

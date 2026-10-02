@@ -1,0 +1,4 @@
+bugfixes:
+  - unifi_firewall_rule - require C(rule_index), C(action), C(protocol) and
+    C(enabled) only when creating a rule, and keep each when an update omits it,
+    instead of refusing an update that does not restate them.

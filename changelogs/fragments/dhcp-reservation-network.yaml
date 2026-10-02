@@ -1,0 +1,8 @@
+---
+bugfixes:
+  - unifi_dhcp_reservation - a task that names neither C(network) nor
+    C(network_id) keeps the network the record already carries instead of failing
+    with an empty network reference. Creating a reservation with neither still
+    fails, naming both options.
+  - unifi_dhcp_reservation - a client can be relabelled without restating
+    C(fixed_ip); an address is now required only when creating a record.

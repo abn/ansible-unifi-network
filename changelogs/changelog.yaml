@@ -1,0 +1,8 @@
+---
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# There is no release yet. The file exists because `galaxy[no-changelog]` fails a
+# collection with no changelog at all, and the release workflow runs
+# `antsibull-changelog release` to populate it from `fragments/`.
+ancestor: null
+releases: {}

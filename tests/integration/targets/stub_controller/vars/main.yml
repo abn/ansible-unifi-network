@@ -1,0 +1,10 @@
+---
+# Resolved from the role rather than from a lookup, so the path does not depend on
+# where ansible-test staged the collection.
+stub_script: "{{ role_path }}/files/stub_controller.py"
+
+# Under the play's own directory, which ansible-test makes writable and which is
+# unique per run. The tempfile lookup is not available in every ansible-core this
+# collection supports, and a fixed path under /tmp would collide the moment two
+# targets ran at once.
+port_file: "{{ playbook_dir }}/stub-port"

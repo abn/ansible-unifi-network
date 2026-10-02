@@ -1,0 +1,30 @@
+---
+# The uv setup every workflow that runs the project's own tooling needs, once.
+#
+# The checkout cannot live here. A local action is resolved from the workspace,
+# and the workspace is empty until the checkout has run, so a composite that
+# checked out the repository could not be found to run. Every job checks out
+# first and calls this second.
+#
+# The ansible-test workflow does not use this at all: it has no uv on purpose,
+# because the action it calls builds its own containers and a uv venv alongside
+# them fails for reasons unrelated to the code.
+name: Prepare
+description: Install the locked tooling environment.
+
+inputs:
+  cache-dependency-glob:
+    description: The file whose contents key the uv cache.
+    default: uv.lock
+  python-version:
+    description: The interpreter uv installs.
+    default: '3.12'
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v10.2.0
+      with:
+        enable-cache: true
+        cache-dependency-glob: ${{ inputs.cache-dependency-glob }}
+        python-version: ${{ inputs.python-version }}

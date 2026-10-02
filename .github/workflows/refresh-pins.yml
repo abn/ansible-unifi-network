@@ -1,0 +1,106 @@
+---
+# Upstream moves on the vendor's schedule, not ours: a new UniFi OS Server
+# release, a new Network application version with a new Integration API
+# description, a new build of the emulated device. This proposes a pull request
+# when one of them moves, and does nothing when none has.
+#
+# It proposes rather than merges, because a pin that moved is not a pin that
+# works. The gates run here so the pull request arrives with an answer, and a
+# human decides whether a newer controller changes what the collection can do.
+# That decision is the one docs/contribution/live-testing.md describes.
+#
+# Fortnightly, on the first and the fifteenth. A cron field cannot express "every
+# fourteen days" without drifting through the year, and two dates a month is the
+# same cadence held steady.
+
+name: refresh pins
+
+on:
+  schedule:
+    - cron: '0 6 1,15 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A superseded push has nothing to say about the new one, and the containerised
+  # jobs are the expensive part of this repository's CI.
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: check upstream and propose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/prepare
+
+      # Detection is separate from the update so a source that cannot be read is
+      # visible in the log rather than only in the diff it failed to produce.
+      - name: Check upstream
+        run: python3 .github/scripts/refresh-pins.py --apply | tee /tmp/pins.json
+
+      - name: Is there anything to propose
+        id: changed
+        run: |
+          if [ "$(python3 -c 'import json;print(json.load(open("/tmp/pins.json"))["changed"])')" = "True" ]; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A moved pin is verified before it is proposed. The unit suite is what
+      # checks the vendored descriptions against the field tables, so a spec that
+      # renamed or dropped a field fails here rather than in review.
+      # Only when there is something to verify. Installing Go and okf on a run
+      # that found nothing would spend most of its time on an unused binary.
+      - uses: ./.github/actions/okf
+        if: steps.changed.outputs.value == 'true'
+
+      - name: Verify the moved pins
+        if: steps.changed.outputs.value == 'true'
+        run: |
+          uv sync --locked
+          make check
+          make test
+
+      - name: Propose the change
+        if: steps.changed.outputs.value == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b chore/refresh-pins
+          git add -- tests/fixtures/unifi-integration-api.json \
+                     tests/live/stack-uos/uos.sh \
+                     tests/live/stack-uos/install.sh
+          git commit -m 'chore: move the pins onto newer upstream releases'
+          git push --force-with-lease -u origin chore/refresh-pins
+
+          # Built line by line rather than with a heredoc: a quoted heredoc would
+          # leave the substitutions in the text, and an unquoted one would run the
+          # backticks in it as commands.
+          {
+            echo 'Proposed by the scheduled pin refresh. Upstream moved; this is what moved.'
+            echo
+            echo '```json'
+            cat /tmp/pins.json
+            echo '```'
+            echo
+            echo 'make check and make test passed on this branch. What they cannot say is'
+            echo 'whether a newer controller changes what the collection can reach, or which'
+            echo 'family serves what. That is the review, and'
+            echo 'docs/contribution/live-testing.md says where the split is asserted.'
+            echo
+            echo 'A source that could not be read is reported as detected false above and'
+            echo 'changed nothing, rather than being guessed at.'
+          } > /tmp/body.md
+
+          gh pr create \
+            --title 'chore: move the pins onto newer upstream releases' \
+            --body-file /tmp/body.md
