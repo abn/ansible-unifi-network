@@ -133,7 +133,7 @@ around the gate.
 
 ## Licensing split
 
-Per REUSE, declared in `LICENSE` and resolved through `LICENSES/`:
+Per REUSE, declared in `LICENSE.md` and resolved through `LICENSES/`:
 
 - `plugins/modules/**` and everything else: `GPL-3.0-or-later`.
 - `plugins/module_utils/**`: `BSD-2-Clause`, so that module authors under
@@ -159,7 +159,7 @@ branch. The ones that actually bite:
   each one to be **completely empty**, zero bytes. This directly conflicts with
   the REUSE convention of an SPDX header in every file, and ansible-test wins:
   the `__init__.py` files carry no header. The licensing of those files is stated
-  in `LICENSE` instead.
+  in `LICENSE.md` instead.
 - `ansible-doc`, which parses module documentation on every supported Python.
 
 ### Ignore files

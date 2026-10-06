@@ -94,4 +94,4 @@ changelog fragment format, and how to add a module.
 ## Licence
 
 GPL-3.0-or-later, with `plugins/module_utils/**` under BSD-2-Clause. See
-[LICENSE](LICENSE).
+[LICENSE](LICENSE.md).
