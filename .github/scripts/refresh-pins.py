@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Find newer upstream releases and move this repository's pins onto them.
 
 Three things are pinned, and they drift on other people's schedules:
@@ -61,7 +61,7 @@ def _version(text: str) -> tuple[int, ...]:
 
 
 def spec_versions() -> list[str]:
-    payload, _ = _get(SPEC_LISTING)
+    payload, _headers = _get(SPEC_LISTING)
     return [
         entry["name"][: -len(".json")]
         for entry in json.loads(payload)
@@ -76,7 +76,7 @@ def spec_current() -> str:
 
 def spec_apply(version: str) -> dict[str, list[str]]:
     before = json.loads(VENDORED_SPEC.read_text())
-    payload, _ = _get(SPEC_RAW.format(version=version))
+    payload, _headers = _get(SPEC_RAW.format(version=version))
     after = json.loads(payload)
     VENDORED_SPEC.write_text(json.dumps(after, indent=2) + "\n")
     return {
@@ -86,21 +86,21 @@ def spec_apply(version: str) -> dict[str, list[str]]:
 
 
 def _ghcr_token() -> str:
-    payload, _ = _get(
+    payload, _headers = _get(
         "https://ghcr.io/token?scope=repository:" + EMU_REPO + ":pull&service=ghcr.io"
     )
     return json.loads(payload)["token"]
 
 
 def _ghcr_tags(token: str) -> list[str]:
-    payload, _ = _get(
+    payload, _headers = _get(
         f"https://ghcr.io/v2/{EMU_REPO}/tags/list", headers={"Authorization": f"Bearer {token}"}
     )
     return json.loads(payload).get("tags", [])
 
 
 def _ghcr_digest(token: str, tag: str) -> str:
-    _, headers = _get(
+    _payload, headers = _get(
         f"https://ghcr.io/v2/{EMU_REPO}/manifests/{tag}",
         headers={
             "Authorization": f"Bearer {token}",
@@ -160,7 +160,7 @@ def installer_latest() -> str | None:
     a feed, this starts working without a change elsewhere.
     """
     try:
-        payload, _ = _get(RELEASES)
+        payload, _headers = _get(RELEASES)
     except urllib.error.URLError as error:
         print(f"the release page could not be read: {error}", file=sys.stderr)
         return None
@@ -170,7 +170,7 @@ def installer_latest() -> str | None:
 
 
 def installer_apply(version: str, url: str) -> str:
-    payload, _ = _get(url)
+    payload, _headers = _get(url)
     digest = hashlib.sha256(payload).hexdigest()
     text = INSTALL.read_text()
     for pattern, value in (

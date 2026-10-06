@@ -27,7 +27,7 @@ COLLECTION := $(FARM)/ansible_collections/abn/unifi_network
 UV := uv run --no-sync --locked
 
 # Listed explicitly, so the farm cannot accumulate stale files that get linted.
-COLLECTION_CONTENT := galaxy.yml meta plugins tests changelogs docs README.md LICENSE
+COLLECTION_CONTENT := galaxy.yml meta plugins tests changelogs docs README.md LICENSE .github
 
 ANSIBLE_TEST := ansible-test
 GALAXY_BUILD := ansible-galaxy
