@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_dhcp_reservation
 short_description: Manage a static DHCP reservation on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a static DHCP reservation, which is a hardware address the controller
     always answers with one address rather than with one from the pool.

@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_device
 short_description: Manage an adopted device on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages the properties a task may set on a device the controller already holds,
     which are its name, whether it is enabled, its status LED, its outdoor mode,
@@ -103,7 +103,7 @@ options:
         move between managing one port and several without renaming anything.
     type: list
     elements: dict
-    version_added: 0.1.0
+    version_added: 1.0.0
     suboptions:
       port_idx:
         description:

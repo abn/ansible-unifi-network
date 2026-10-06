@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_firewall_policy
 short_description: Manage a policy in the site's firewall
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages one policy in the zone based firewall the controller evaluates, which
     is a newer surface than the site settings the rest of this collection manages

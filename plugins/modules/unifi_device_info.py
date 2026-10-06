@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_device_info
 short_description: List the adopted devices on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Reads every device the controller holds in the site, which is every device it
     has adopted.

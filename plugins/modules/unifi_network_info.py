@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_network_info
 short_description: List the networks on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Reads every network the controller holds in the site.
   - The result is a projection of the controller's own rows rather than the rows

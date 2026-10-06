@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_port_forward
 short_description: Manage a port forward on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a port forward, which admits traffic arriving on a WAN interface and
     delivers it to an address and a port inside the site.

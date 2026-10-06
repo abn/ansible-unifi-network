@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_firewall_zone
 short_description: Manage a firewall zone on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a zone of the site's firewall, which is the group of networks between
     which the controller's policies are written.

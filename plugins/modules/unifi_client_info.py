@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_client_info
 short_description: List the clients and stations on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Reads the controller's client registry and its list of currently connected
     stations, and returns them as two separate lists.

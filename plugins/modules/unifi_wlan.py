@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_wlan
 short_description: Manage a wireless network on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a wireless network, which the controller holds as a flat object where
     the security mode, the band and the passphrase sit beside each other rather

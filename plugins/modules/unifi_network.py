@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_network
 short_description: Manage a network on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a network object, which is the root of most other configuration, since
     a wireless network, a port profile and a firewall policy all address networks
@@ -106,7 +106,7 @@ options:
         O(dhcp_dns_enabled=false) instead.
     type: list
     elements: str
-    version_added: 0.1.0
+    version_added: 1.0.0
   dhcp_dns_1:
     description:
       - The first resolver to hand out.

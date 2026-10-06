@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_port_override
 short_description: Manage one port override on a UniFi device
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages the override of a single port on a device the controller already
     holds, which is the per-port configuration that departs from the port's

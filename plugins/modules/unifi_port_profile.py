@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_port_profile
 short_description: Manage a port profile on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a port profile, which is the switching configuration a switch port is
     set to rather than the configuration of a port itself.

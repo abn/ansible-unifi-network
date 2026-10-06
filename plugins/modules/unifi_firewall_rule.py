@@ -9,7 +9,7 @@ from __future__ import annotations
 DOCUMENTATION = r"""
 module: unifi_firewall_rule
 short_description: Manage a firewall rule on a UniFi controller
-version_added: 0.1.0
+version_added: 1.0.0
 description:
   - Manages a rule in the controller's classic firewall engine, addressed at
     C(/rest/firewallrule) beneath the site.
