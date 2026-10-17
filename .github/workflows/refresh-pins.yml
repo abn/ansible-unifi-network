@@ -75,6 +75,12 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # The branch name is reused across runs so a moved pin updates the one
+          # open pull request instead of spawning a new one each fortnight.
+          # Fetch it first so --force-with-lease knows the remote's current tip;
+          # otherwise the lease compares against an absent tracking ref and the
+          # push is rejected as stale.
+          git fetch origin chore/refresh-pins 2>/dev/null || true
           git checkout -b chore/refresh-pins
           git add -- tests/fixtures/unifi-integration-api.json \
                      tests/live/stack-uos/uos.sh \
@@ -101,6 +107,10 @@ jobs:
             echo 'changed nothing, rather than being guessed at.'
           } > /tmp/body.md
 
-          gh pr create \
-            --title 'chore: move the pins onto newer upstream releases' \
-            --body-file /tmp/body.md
+          if [ -n "$(gh pr list --head chore/refresh-pins --state open --json number --jq '.[0].number')" ]; then
+            gh pr edit chore/refresh-pins --body-file /tmp/body.md
+          else
+            gh pr create \
+              --title 'chore: move the pins onto newer upstream releases' \
+              --body-file /tmp/body.md
+          fi
