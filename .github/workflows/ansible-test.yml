@@ -26,7 +26,7 @@ concurrency:
 jobs:
   sanity:
     name: sanity ${{ matrix.ansible }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +41,7 @@ jobs:
 
   units:
     name: units ${{ matrix.ansible }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -56,7 +56,7 @@ jobs:
 
   integration:
     name: integration ${{ matrix.ansible }} ${{ matrix.python }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
